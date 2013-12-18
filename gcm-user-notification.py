@@ -1,38 +1,88 @@
 import cgi
 import json
+import os
+
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.ext import db
+from google.appengine.ext.webapp import template
+from google.appengine.api import urlfetch
 
 api_key = "AIzaSyDiNlzQ9adtA1WojZjE_ZtUJ-u6XenRJ2w"
+gcm_url = "https://android.googleapis.com/gcm/send"
 
-registrationIds = "APA91bH91lUn-xpYLc4x098J3lH3BPqM54tLXdv0STLkJlvGPNvv1xga0wO_YZhkTNImvmrMuHZn5G8A8qaYnF-t-U14xupKado0SxvNt4d15Psyf8LJQvXzANNjRcK7sQ6JoxL2TxTUNJWxNU9GYzQf8BdjSqq_WeO09UfkufkdJNds6GuURys"
-
+class RegistrationId(db.Model):
+    registrationId = db.StringProperty(multiline=True)
 
 class MainPage(webapp.RequestHandler):
     def get(self):
-        self.response.out.write("""
-          <html>
-            <body>
-              <form action="/send" method="post">
-                <div><textarea name="content" rows="3" cols="60"></textarea></div>
-                <div><input type="submit" value="Sign Guestbook"></div>
-              </form>
-            </body>
-          </html>""")
+        self.response.out.write('<html><body>')
 
+        registrationIds = db.GqlQuery("SELECT * FROM RegistrationId")
 
-class Guestbook(webapp.RequestHandler):
-    def post(self):
-        content = cgi.escape(self.request.get('content'));
+        template_values = { 
+            'send_action' : 'send',
+            'data' : registrationIds 
+        }
         
-        self.response.out.write('<html><body>You wrote:<pre>')
-        self.response.out.write(content)
-        self.response.out.write('</pre></body></html>')
+        path = os.path.join(os.path.dirname(__file__), 'index.html')
+        self.response.out.write(template.render(path, template_values)) 
+    
+        #for ids in registrationIds:
+        #    self.response.out.write('registion id : <b>%s</b> <br>' % ids.registrationId)
+            #if greeting.author:
+            #    self.response.out.write('<b>%s</b> wrote:' % greeting.author.nickname())
+            #else:
+            #    self.response.out.write('An anonymous person wrote:')
+            #self.response.out.write('<blockquote>%s</blockquote>' %
+            #                        cgi.escape(greeting.content))
+
+        # Write the submission form and the footer of the page
+
+class AddRegistrationId(webapp.RequestHandler):
+    def post(self):
+        registration = RegistrationId()
+        
+        registration.registrationId = self.request.body
+        # :(
+        res = db.GqlQuery("SELECT * FROM RegistrationId WHERE registrationId = :1", self.request.body) 
+        for item in res:
+            return  
+        registration.put()        
+
+class SendUserNotification(webapp.RequestHandler):
+    def post(self):
+        registrationIds = db.GqlQuery("SELECT * FROM RegistrationId")
+        arrayIds = []
+        for item in registrationIds:
+            arrayIds.append(item.registrationId.rstrip('\n'))
+
+        content = cgi.escape(self.request.get('content'))
+
+        gcm_request = { 
+            'data' : { 
+                'message' : content 
+            } , 
+            'registration_ids' : arrayIds 
+        }
+        
+        result = urlfetch.fetch(url=gcm_url,
+            payload=json.dumps(gcm_request),
+            method=urlfetch.POST,
+            headers={'Content-Type' : 'application/json', "Authorization" : "key=" + api_key}
+        )
+
+        if result.status_code == 200:
+            self.redirect('/')
+        else: 
+            print '' 
+            print result.content
 
 application = webapp.WSGIApplication(
                                      [('/', MainPage),
-                                      ('/send', Guestbook)],
+                                      ('/registration', AddRegistrationId),
+                                      ('/send', SendUserNotification)],
                                      debug=True)
 
 def main():
@@ -40,4 +90,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

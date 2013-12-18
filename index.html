@@ -1,0 +1,12 @@
+<html>
+    <body>
+        <form action="/{{ send_action  }}" method="post">
+            <div><textarea name="content" rows="3" cols="60"></textarea></div>
+            <div><input type="submit" value="Send user notification"></div>
+        </form>
+
+    {% for item in data %}
+        registration Id: <b> {{ item.registrationId }} </b> <br>
+    {% endfor %}
+    </body>
+</html>
