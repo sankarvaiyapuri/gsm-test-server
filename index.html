@@ -1,6 +1,7 @@
 <html>
     <body>
-        <form action="/{{ send_action  }}" method="post">
+        <form action="/{{ send_action  }}" method="get">
+            <input type="hidden" name="package"  value="{{ package }}">
             <div><textarea name="content" rows="8" cols="100"> {{ text_area }} </textarea></div>
             <div><input type="submit" value="Send message"></div>
         </form>

@@ -26,7 +26,6 @@ def get_gcm_request(message_text, package):
     arrayIds = []
     for item in registrationIds:
         arrayIds.append(item.registrationId.rstrip('\n'))
-        #content = cgi.escape(self.request.get('content'))
 
     gcm_request = { 
         'data' : { 
@@ -60,7 +59,8 @@ class MainPage(webapp.RequestHandler):
         template_values = { 
             'send_action' : 'send',
             'data' : packages,
-            'text_area' : text_area
+            'text_area' : text_area,
+            'package' : package
         }
         
         path = os.path.join(os.path.dirname(__file__), 'index.html')
@@ -81,30 +81,23 @@ class AddRegistrationId(webapp.RequestHandler):
         registration.put()
 
 class SendUserNotification(webapp.RequestHandler):
-    def post(self):
-        registrationIds = db.GqlQuery("SELECT * FROM RegistrationId")
-        arrayIds = []
-        for item in registrationIds:
-            arrayIds.append(item.registrationId.rstrip('\n'))
-
+    def get(self):
         content = cgi.escape(self.request.get('content'))
-
-        gcm_request = { 
-            'data' : { 
-                'message' : content 
-            } , 
-            'registration_ids' : arrayIds 
-        }
         
         result = urlfetch.fetch(url=gcm_url,
-            payload=json.dumps(gcm_request),
+            payload=content,
             method=urlfetch.POST,
             headers = { 'Content-Type' : 'application/json', "Authorization" : "key=" + api_key }
         )
-
+        package = self.request.get('package')
         if result.status_code == 200:
-            self.redirect('/')
+            if "" == package or None == package:
+                self.redirect('/')
+            else: 
+                self.redirect('/?package='+package)
         else: 
+            print '' 
+            print content
             print '' 
             print result.content
 
