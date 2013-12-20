@@ -28,17 +28,6 @@ class MainPage(webapp.RequestHandler):
         
         path = os.path.join(os.path.dirname(__file__), 'index.html')
         self.response.out.write(template.render(path, template_values)) 
-    
-        #for ids in registrationIds:
-        #    self.response.out.write('registion id : <b>%s</b> <br>' % ids.registrationId)
-            #if greeting.author:
-            #    self.response.out.write('<b>%s</b> wrote:' % greeting.author.nickname())
-            #else:
-            #    self.response.out.write('An anonymous person wrote:')
-            #self.response.out.write('<blockquote>%s</blockquote>' %
-            #                        cgi.escape(greeting.content))
-
-        # Write the submission form and the footer of the page
 
 class AddRegistrationId(webapp.RequestHandler):
     def post(self):
