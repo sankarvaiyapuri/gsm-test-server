@@ -11,7 +11,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from google.appengine.api import urlfetch
 
-api_key = "AIzaSyDiNlzQ9adtA1WojZjE_ZtUJ-u6XenRJ2w"
+api_key = "You api key"
 gcm_url = "https://android.googleapis.com/gcm/send"
 
 def get_gcm_request(message_text, package):
@@ -89,6 +89,7 @@ class SendUserNotification(webapp.RequestHandler):
             headers = { 'Content-Type' : 'application/json', "Authorization" : "key=" + api_key }
         )
         package = self.request.get('package')
+        
         if result.status_code == 200:
             if "" == package or None == package:
                 self.redirect('/')

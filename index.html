@@ -1,13 +1,32 @@
 <html>
-    <body>
-        <form action="/{{ send_action  }}" method="get">
-            <input type="hidden" name="package"  value="{{ package }}">
-            <div><textarea name="content" rows="8" cols="100"> {{ text_area }} </textarea></div>
-            <div><input type="submit" value="Send message"></div>
-        </form>
+<head>    
+    <link rel="stylesheet" href="stylesheets/jsoneditor.css"/>   
+</head>
+
+<body>
+
+    <pre id="path"></pre>
+    <div id="editor" class="json-editor"></div>
+    
+    <form action="/{{ send_action  }}" method="get">
+    <input type="hidden" name="package"  value="{{ package }}">
+        <div><textarea id="json" name="content" rows="8" cols="100"></textarea></div>
+        <div><input type="submit" value="Send message"></div>
+    </form>
+
+
+    <script src="js/json2.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.jsoneditor.js"></script>
+    <script src="js/jsoneditor.js">
+    </script>
+
+    <script type="text/javascript"> 
+        var json =  jQuery.parseJSON( '{{text_area}}'.replace(new RegExp("&quot;","gm"),'"') );
+    </script>
 
     {% for item in data %}
         package :  <a href="/?package={{ item }}"> {{ item }}</a> <br>
     {% endfor %}
-    </body>
+</body>
 </html>
